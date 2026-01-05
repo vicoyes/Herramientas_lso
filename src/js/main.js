@@ -1,5 +1,5 @@
-// Configuración del cuestionario
-const QUESTIONS = [
+// Datos de las preguntas
+const questions = [
   {
     id: 1,
     text: "¿Debes más de 10.000€?",
@@ -12,314 +12,193 @@ const QUESTIONS = [
   },
   {
     id: 3,
-    text: "¿Has intentado llegar a un acuerdo con acreedores y ha sido fallido?",
+    text: "¿Has intentado llegar a un acuerdo con acreedores?",
     key: "p3"
   }
 ];
 
 // Estado de la aplicación
 let currentQuestionIndex = 0;
-let answers = {
-  p1: null,
-  p2: null,
-  p3: null
-};
-let userEmail = '';
+let answers = {};
 
-// Elementos DOM
-const sections = {
-  hero: document.getElementById('hero-section'),
-  quiz: document.getElementById('quiz-section'),
-  loading: document.getElementById('loading-section'),
-  results: document.getElementById('results-section')
-};
-
-const elements = {
-  startBtn: document.getElementById('start-btn'),
-  questionText: document.getElementById('question-text'),
-  currentQuestion: document.getElementById('current-question'),
-  progressPercent: document.getElementById('progress-percent'),
-  progressBar: document.getElementById('progress-bar'),
-  answerBtns: document.querySelectorAll('.answer-btn'),
-  resultContent: document.getElementById('result-content')
-};
-
-// Inicialización
-function init() {
-  // Capturar email de la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  userEmail = urlParams.get('email') || '';
-  
-  // Event listeners
-  elements.startBtn.addEventListener('click', startQuiz);
-  
-  elements.answerBtns.forEach(btn => {
-    btn.addEventListener('click', handleAnswer);
-  });
-}
-
-// Iniciar el cuestionario
-function startQuiz() {
-  showSection('quiz');
-  displayQuestion();
-}
-
-// Mostrar pregunta actual
-function displayQuestion() {
-  const question = QUESTIONS[currentQuestionIndex];
-  elements.questionText.textContent = question.text;
-  elements.currentQuestion.textContent = currentQuestionIndex + 1;
-  
-  const progress = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
-  elements.progressPercent.textContent = Math.round(progress);
-  elements.progressBar.style.width = `${progress}%`;
-  
-  // Animación de entrada
-  const questionContainer = document.getElementById('question-container');
-  questionContainer.classList.remove('fade-in');
-  void questionContainer.offsetWidth; // Trigger reflow
-  questionContainer.classList.add('fade-in');
-}
-
-// Manejar respuesta
-function handleAnswer(e) {
-  const answer = e.target.dataset.answer === 'yes';
-  const currentQuestion = QUESTIONS[currentQuestionIndex];
-  
-  answers[currentQuestion.key] = answer;
-  
-  // Verificar si hay más preguntas
-  if (currentQuestionIndex < QUESTIONS.length - 1) {
-    currentQuestionIndex++;
-    displayQuestion();
-  } else {
-    // Todas las preguntas respondidas
-    processResults();
-  }
-}
-
-// Procesar resultados según la matriz
-function processResults() {
-  showSection('loading');
-  
-  // Simular análisis (2-3 segundos)
-  setTimeout(async () => {
-    const result = calculateResult();
-    
-    // Enviar datos al webhook si es necesario
-    if (result.type === 'LEY_SEGUNDA_OPORTUNIDAD') {
-      await sendWebhook(result);
-    }
-    
-    showResult(result);
-  }, 2500);
-}
-
-// Calcular resultado según la matriz lógica
-function calculateResult() {
-  const { p1, p2, p3 } = answers;
-  
-  // Regla crítica: Si P3 es NO, siempre es NEGOCIA
-  if (p3 === false) {
-    return {
-      type: 'NEGOCIA',
-      title: 'Recomendamos Negociar con tus Acreedores',
-      message: 'Antes de acogerte a la Ley de Segunda Oportunidad, es importante intentar llegar a un acuerdo directo con tus acreedores.'
-    };
-  }
-  
-  // P3 es SÍ, revisar otras condiciones
-  // LEY SEGUNDA OPORTUNIDAD: (SÍ/NO/SÍ) o (NO/NO/SÍ)
-  if ((p1 === true && p2 === false && p3 === true) || 
-      (p1 === false && p2 === false && p3 === true)) {
-    return {
-      type: 'LEY_SEGUNDA_OPORTUNIDAD',
-      title: '¡Puedes Acogerte a la Ley de Segunda Oportunidad!',
-      message: 'Según tus respuestas, cumples con el perfil para beneficiarte de esta ley.'
-    };
-  }
-  
-  // PERFIL NO APTO: (SÍ/SÍ/SÍ)
-  if (p1 === true && p2 === true && p3 === true) {
-    return {
-      type: 'NO_APTO',
-      title: 'Perfil No Cualificado',
-      message: 'Según tus respuestas, actualmente no cumples con el perfil requerido para la Ley de Segunda Oportunidad.'
-    };
-  }
-  
-  // Fallback a NEGOCIA
-  return {
-    type: 'NEGOCIA',
-    title: 'Recomendamos Negociar con tus Acreedores',
-    message: 'La mejor opción en tu caso es intentar llegar a un acuerdo directo con tus acreedores.'
-  };
-}
-
-// Enviar datos al webhook
-async function sendWebhook(result) {
-  const webhookURL = 'YOUR_WEBHOOK_URL_HERE'; // Configurar el webhook
-  
-  const payload = {
-    email: userEmail,
-    answers: {
-      question1: answers.p1 ? 'SÍ' : 'NO',
-      question2: answers.p2 ? 'SÍ' : 'NO',
-      question3: answers.p3 ? 'SÍ' : 'NO'
-    },
-    result: result.type,
-    timestamp: new Date().toISOString()
-  };
-  
-  try {
-    await fetch(webhookURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-  } catch (error) {
-    console.error('Error enviando webhook:', error);
-  }
-}
-
-// Mostrar resultado
-function showResult(result) {
-  let content = '';
-  
-  if (result.type === 'LEY_SEGUNDA_OPORTUNIDAD') {
-    content = `
-      <div class="text-center">
-        <div class="text-6xl mb-4">✓</div>
-        <h2 class="text-3xl font-bold text-accent-green mb-4">${result.title}</h2>
-        <p class="text-lg text-[#636e88] mb-8">${result.message}</p>
-        
-        <div class="bg-background-light p-6 rounded-xl mb-6">
-          <h3 class="text-xl font-semibold text-primary mb-4">
-            Te ofrecemos un Análisis COMPLETO GRATUITO para estudiar tu caso
-          </h3>
-          
-          <form id="lead-form" class="max-w-md mx-auto space-y-4">
-            <input 
-              type="text" 
-              id="nombre" 
-              placeholder="Nombre completo" 
-              required 
-              class="input-field"
-            >
-            <input 
-              type="tel" 
-              id="telefono" 
-              placeholder="Teléfono" 
-              required 
-              class="input-field"
-            >
-            <input 
-              type="email" 
-              id="email" 
-              placeholder="Email" 
-              value="${userEmail}"
-              required 
-              class="input-field"
-            >
-            <button type="submit" class="btn-primary w-full">
-              Solicitar Análisis Gratuito
-            </button>
-          </form>
-        </div>
-        
-        <p class="text-sm text-[#636e88]">
-          O contáctanos por WhatsApp: 
-          <a href="https://wa.me/YOUR_PHONE_NUMBER" target="_blank" class="text-secondary hover:underline font-semibold">
-            Hablar con un asesor
-          </a>
-        </p>
-      </div>
-    `;
-  } else if (result.type === 'NEGOCIA') {
-    content = `
-      <div class="text-center">
-        <div class="text-6xl mb-4">⚠️</div>
-        <h2 class="text-3xl font-bold text-accent-yellow mb-4">${result.title}</h2>
-        <p class="text-lg text-[#636e88] mb-8">${result.message}</p>
-        
-        <div class="bg-background-light p-6 rounded-xl mb-6">
-          <h3 class="text-xl font-semibold text-primary mb-4">
-            Consejos para negociar con tus acreedores:
-          </h3>
-          <ul class="text-left space-y-2 max-w-lg mx-auto text-[#636e88]">
-            <li>✓ Prepara un plan de pagos realista</li>
-            <li>✓ Comunícate de manera proactiva</li>
-            <li>✓ Solicita quitas o reducciones de intereses</li>
-            <li>✓ Documenta todos los acuerdos por escrito</li>
-          </ul>
-        </div>
-        
-        <button onclick="location.reload()" class="btn-secondary">
-          Volver a evaluar
-        </button>
-      </div>
-    `;
-  } else { // NO_APTO
-    content = `
-      <div class="text-center">
-        <div class="text-6xl mb-4">✗</div>
-        <h2 class="text-3xl font-bold text-accent-red mb-4">${result.title}</h2>
-        <p class="text-lg text-[#636e88] mb-8">${result.message}</p>
-        
-        <div class="bg-background-light p-6 rounded-xl mb-6">
-          <p class="text-[#636e88]">
-            Si tu situación cambia en el futuro, puedes volver a realizar la evaluación.
-          </p>
-        </div>
-        
-        <button onclick="location.reload()" class="btn-secondary">
-          Realizar nueva evaluación
-        </button>
-      </div>
-    `;
-  }
-  
-  elements.resultContent.innerHTML = content;
-  
-  // Si hay formulario, agregar event listener
-  const leadForm = document.getElementById('lead-form');
-  if (leadForm) {
-    leadForm.addEventListener('submit', handleLeadSubmit);
-  }
-  
-  showSection('results');
-}
-
-// Manejar envío del formulario de leads
-async function handleLeadSubmit(e) {
-  e.preventDefault();
-  
-  const formData = {
-    nombre: document.getElementById('nombre').value,
-    telefono: document.getElementById('telefono').value,
-    email: document.getElementById('email').value,
-    origen: 'Ley Segunda Oportunidad - Landing'
-  };
-  
-  // Aquí se integraría con HubSpot
-  // Por ahora solo mostramos confirmación
-  alert('¡Gracias! En breve nos pondremos en contacto contigo.');
-  
-  // Opcional: Enviar a HubSpot API
-  // await sendToHubSpot(formData);
-}
-
-// Función auxiliar para mostrar secciones
-function showSection(section) {
-  Object.keys(sections).forEach(key => {
-    sections[key].classList.add('hidden');
-  });
-  sections[section].classList.remove('hidden');
-}
+// Elementos del DOM
+let heroSection, quizSection, loadingSection, resultsSection;
+let startBtn, questionText, currentQuestionEl, progressPercent, progressBar;
+let answerBtns, resultContent;
 
 // Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() {
+  // Obtener elementos del DOM
+  heroSection = document.getElementById('hero-section');
+  quizSection = document.getElementById('quiz-section');
+  loadingSection = document.getElementById('loading-section');
+  resultsSection = document.getElementById('results-section');
+  startBtn = document.getElementById('start-btn');
+  questionText = document.getElementById('question-text');
+  currentQuestionEl = document.getElementById('current-question');
+  progressPercent = document.getElementById('progress-percent');
+  progressBar = document.getElementById('progress-bar');
+  answerBtns = document.querySelectorAll('.answer-btn');
+  resultContent = document.getElementById('result-content');
+  
+  // Event Listeners
+  if (startBtn) {
+    startBtn.addEventListener('click', startQuiz);
+  }
+  
+  if (answerBtns) {
+    answerBtns.forEach(btn => {
+      btn.addEventListener('click', handleAnswer);
+    });
+  }
+  
+  console.log('App de Ley Segunda Oportunidad cargada y lista');
+});
 
-export { init, calculateResult, sendWebhook };
+// Funciones
+function startQuiz() {
+  heroSection.classList.add('hidden');
+  quizSection.classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion() {
+  const question = questions[currentQuestionIndex];
+  questionText.textContent = question.text;
+  currentQuestionEl.textContent = currentQuestionIndex + 1;
+  
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  progressPercent.textContent = Math.round(progress);
+  progressBar.style.width = `${progress}%`;
+}
+
+function handleAnswer(e) {
+  const answer = e.target.dataset.answer;
+  const question = questions[currentQuestionIndex];
+  
+  answers[question.key] = answer === 'yes';
+  
+  currentQuestionIndex++;
+  
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    showLoading();
+  }
+}
+
+function showLoading() {
+  quizSection.classList.add('hidden');
+  loadingSection.classList.remove('hidden');
+  
+  setTimeout(showResults, 2000);
+}
+
+function showResults() {
+  loadingSection.classList.add('hidden');
+  resultsSection.classList.remove('hidden');
+  
+  const qualifies = checkQualification();
+  displayResult(qualifies);
+}
+
+function checkQualification() {
+  const p1 = answers.p1; // ¿Debes más de 10.000€?
+  const p2 = answers.p2; // ¿Tienes capacidad para pagar?
+  const p3 = answers.p3; // ¿Has intentado acuerdo?
+  
+  // LEY SEGUNDA OPORTUNIDAD: Sí/No/Sí o No/No/Sí
+  if ((p1 === true && p2 === false && p3 === true) || 
+      (p1 === false && p2 === false && p3 === true)) {
+    return 'LEY_SEGUNDA_OPORTUNIDAD';
+  }
+  
+  // NEGOCIA CON ACREEDORES: No/No/No, Sí/No/No, Sí/Sí/No
+  if ((p1 === false && p2 === false && p3 === false) ||
+      (p1 === true && p2 === false && p3 === false) ||
+      (p1 === true && p2 === true && p3 === false)) {
+    return 'NEGOCIA';
+  }
+  
+  // TE TOCÓ LA LOTERÍA: Sí/Sí/Sí
+  if (p1 === true && p2 === true && p3 === true) {
+    return 'LOTERIA';
+  }
+  
+  // Caso por defecto (No/Sí/Sí o No/Sí/No)
+  return 'NEGOCIA';
+}
+
+function displayResult(resultType) {
+  if (resultType === 'LEY_SEGUNDA_OPORTUNIDAD') {
+    resultContent.innerHTML = `
+      <div class="text-center">
+        <div class="text-6xl mb-6">✅</div>
+        <h2 class="text-3xl font-bold text-accent-green mb-4">
+          ¡Puedes Acogerte a la Ley de Segunda Oportunidad!
+        </h2>
+        <p class="text-xl text-text-light mb-8">
+          Basándonos en tus respuestas, cumples con el perfil para beneficiarte de esta ley y cancelar tus deudas legalmente.
+        </p>
+        <div class="bg-blue-50 p-6 rounded-xl mb-8">
+          <h3 class="font-semibold text-primary mb-3">Próximos Pasos:</h3>
+          <ul class="text-left space-y-2 text-text-light">
+            <li>✓ Consulta con un abogado especializado</li>
+            <li>✓ Reúne la documentación de tus deudas</li>
+            <li>✓ Prepara evidencia de tus intentos de pago</li>
+          </ul>
+        </div>
+        <button onclick="location.reload()" class="btn-primary">
+          Realizar Nueva Evaluación
+        </button>
+      </div>
+    `;
+  } else if (resultType === 'NEGOCIA') {
+    resultContent.innerHTML = `
+      <div class="text-center">
+        <div class="text-6xl mb-6">⚠️</div>
+        <h2 class="text-3xl font-bold" style="color: #f59e0b; margin-bottom: 1rem;">
+          Recomendamos Negociar con tus Acreedores
+        </h2>
+        <p class="text-xl text-text-light mb-8">
+          Es importante intentar llegar a un acuerdo directo con tus acreedores antes de considerar otras opciones.
+        </p>
+        <div class="bg-gray-50 p-6 rounded-xl mb-8">
+          <h3 class="font-semibold text-primary mb-3">Consejos para negociar:</h3>
+          <ul class="text-left space-y-2 text-text-light">
+            <li>→ Prepara un plan de pagos realista</li>
+            <li>→ Comunícate de manera proactiva con tus acreedores</li>
+            <li>→ Solicita quitas o reducciones de intereses</li>
+            <li>→ Documenta todos los acuerdos por escrito</li>
+          </ul>
+        </div>
+        <button onclick="location.reload()" class="btn-primary">
+          Realizar Nueva Evaluación
+        </button>
+      </div>
+    `;
+  } else if (resultType === 'LOTERIA') {
+    resultContent.innerHTML = `
+      <div class="text-center">
+        <div class="text-6xl mb-6">🎉</div>
+        <h2 class="text-3xl font-bold text-accent-green mb-4">
+          ¡Que te Toque la Lotería!
+        </h2>
+        <p class="text-xl text-text-light mb-8">
+          Tienes capacidad de pago y ya has intentado llegar a acuerdos. Tu mejor opción es continuar cumpliendo con tus compromisos.
+        </p>
+        <div class="bg-blue-50 p-6 rounded-xl mb-8">
+          <h3 class="font-semibold text-primary mb-3">Recomendaciones:</h3>
+          <ul class="text-left space-y-2 text-text-light">
+            <li>✓ Mantén tus pagos al día</li>
+            <li>✓ Continúa negociando mejores condiciones</li>
+            <li>✓ Busca asesoramiento financiero para optimizar tus pagos</li>
+          </ul>
+        </div>
+        <button onclick="location.reload()" class="btn-primary">
+          Realizar Nueva Evaluación
+        </button>
+      </div>
+    `;
+  }
+}
