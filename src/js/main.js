@@ -73,7 +73,7 @@ async function handleLeadSubmit(e) {
   const email = form.email.value;
   const phone = form.phone.value;
   
-  const webhookURL = 'https://n8n.empiezadecero.cat/webhook-test/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
+  const webhookURL = 'https://n8n.empiezadecero.cat/webhook/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
   
   // AHORA enviamos el webhook completo con toda la información del lead LSO
   const payload = {
