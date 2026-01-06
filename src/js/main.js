@@ -281,9 +281,9 @@ function displayResult(resultType) {
         </p>
         
         <!-- Formulario de Captura de Lead -->
-        <div class="bg-blue-50 p-8 rounded-xl mb-6">
-          <h3 class="font-semibold text-primary mb-4 text-lg">Déjanos tus datos y te contactaremos</h3>
-          <form id="lead-form" class="space-y-4">
+        <div class="bg-blue-50 p-6 md:p-10 rounded-xl mb-6">
+          <h3 class="font-semibold text-primary mb-6 text-lg">Déjanos tus datos y te contactaremos</h3>
+          <form id="lead-form" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="text-left">
                 <label for="lead-name" class="block text-sm font-medium text-primary mb-1">Nombre *</label>
