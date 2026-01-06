@@ -182,7 +182,7 @@ async function showResults() {
 
 // Función para enviar datos al webhook
 async function sendWebhook(resultType) {
-  const webhookURL = 'https://n8n.empiezadecero.cat/webhook-test/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
+  const webhookURL = 'https://n8n.empiezadecero.cat/webhook/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
   
   // Determinar el tag según el resultado
   let tag = '';

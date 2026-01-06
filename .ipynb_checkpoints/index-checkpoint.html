@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ley Segunda Oportunidad - Análisis Gratuito</title>
+  <meta name="description" content="Descubre si puedes acogerte a la Ley de Segunda Oportunidad. Análisis gratuito de tu situación.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spinkit/2.0.1/spinkit.min.css" integrity="sha512-jizXET+NbVW5rdVe5wB35rtwqW45jyh1J/mlZMf+9KqjqVrXLi7+AD62jwWD4tJKdA6lDxpYTzC5d/1EemqQmw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="./src/css/styles.css">
+</head>
+<body class="min-h-screen">
+  <!-- Contenedor Principal -->
+  <div id="app" class="min-h-screen flex flex-col">
+    
+    <!-- Hero Section -->
+    <section id="hero-section" class="container mx-auto px-4 py-16 max-w-4xl fade-in">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-primary mb-6">
+          ¿Puedes Acogerte a la<br>Ley de Segunda Oportunidad?
+        </h1>
+        <p class="text-xl text-[#636e88] mb-8 max-w-2xl mx-auto">
+          Responde 3 sencillas preguntas y descubre si calificas para cancelar tus deudas legalmente.
+        </p>
+        <button id="start-btn" class="btn-primary text-lg">
+          Comenzar Evaluación Gratuita
+        </button>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section id="quiz-section" class="hidden container mx-auto px-4 py-16 max-w-3xl">
+      <div class="card">
+        <!-- Progress bar -->
+        <div class="mb-8">
+          <div class="flex justify-between text-sm text-[#636e88] mb-2">
+            <span>Pregunta <span id="current-question">1</span> de 3</span>
+            <span><span id="progress-percent">33</span>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="progress-bar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 33%"></div>
+          </div>
+        </div>
+
+        <!-- Question Container -->
+        <div id="question-container" class="fade-in">
+          <h2 id="question-text" class="text-2xl md:text-3xl font-semibold text-primary mb-8"></h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button class="answer-btn bg-accent-green text-white font-semibold py-4 px-6 rounded-xl shadow-md hover:opacity-90 transition-all duration-200 transform hover:scale-105" data-answer="yes">
+              ✓ SÍ
+            </button>
+            <button class="answer-btn bg-accent-red text-white font-semibold py-4 px-6 rounded-xl shadow-md hover:opacity-90 transition-all duration-200 transform hover:scale-105" data-answer="no">
+              ✗ NO
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading Section -->
+    <section id="loading-section" class="hidden container mx-auto px-4 py-16 max-w-3xl">
+      <div class="card text-center">
+        <div class="sk-chase" style="margin: 0 auto 2rem auto;">
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+        </div>
+        <h2 class="text-2xl font-semibold text-primary mb-4">Analizando tus respuestas...</h2>
+        <p class="text-[#636e88]">Por favor espera un momento</p>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section" class="hidden container mx-auto px-4 py-16 max-w-3xl">
+      <div id="result-content" class="card fade-in">
+        <!-- El contenido se insertará dinámicamente -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="./src/js/main.js"></script>
+</body>
+</html>
