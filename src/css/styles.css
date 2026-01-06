@@ -404,6 +404,42 @@ ul {
   padding-left: 0;
 }
 
+/* Formularios */
+input[type="email"],
+input[type="tel"],
+input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="text"]:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(10, 36, 97, 0.1);
+}
+
+input[type="email"]:invalid,
+input[type="tel"]:invalid {
+  border-color: var(--color-accent-red);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
 /* Responsive */
 @media (min-width: 768px) {
   .md\:text-5xl {
