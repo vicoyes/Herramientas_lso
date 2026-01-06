@@ -20,6 +20,7 @@ const questions = [
 // Estado de la aplicación
 let currentQuestionIndex = 0;
 let answers = {};
+let userEmail = '';
 
 // Elementos del DOM
 let heroSection, quizSection, loadingSection, resultsSection;
@@ -28,6 +29,10 @@ let answerBtns, resultContent;
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
+  // Capturar email de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  userEmail = urlParams.get('email') || '';
+  
   // Obtener elementos del DOM
   heroSection = document.getElementById('hero-section');
   quizSection = document.getElementById('quiz-section');
@@ -53,6 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   console.log('App de Ley Segunda Oportunidad cargada y lista');
+  if (userEmail) {
+    console.log('Email capturado:', userEmail);
+  }
 });
 
 // Funciones
@@ -91,15 +99,81 @@ function showLoading() {
   quizSection.classList.add('hidden');
   loadingSection.classList.remove('hidden');
   
-  setTimeout(showResults, 2000);
+  setTimeout(async () => {
+    await showResults();
+  }, 2000);
 }
 
-function showResults() {
+async function showResults() {
+  const resultType = checkQualification();
+  
+  // Enviar al webhook para TODOS los resultados
+  await sendWebhook(resultType);
+  
   loadingSection.classList.add('hidden');
   resultsSection.classList.remove('hidden');
+  displayResult(resultType);
+}
+
+// Función para enviar datos al webhook
+async function sendWebhook(resultType) {
+  const webhookURL = 'https://n8n.empiezadecero.cat/webhook-test/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
   
-  const qualifies = checkQualification();
-  displayResult(qualifies);
+  // Determinar el tag según el resultado
+  let tag = '';
+  switch(resultType) {
+    case 'LEY_SEGUNDA_OPORTUNIDAD':
+      tag = 'LSO';
+      break;
+    case 'NEGOCIA':
+      tag = 'Negocia';
+      break;
+    case 'LOTERIA':
+      tag = 'Loteria';
+      break;
+    default:
+      tag = 'Resultado Desconocido';
+  }
+  
+  const payload = {
+    email: userEmail || 'No proporcionado',
+    tag: tag,
+    resultado: resultType,
+    respuestas: {
+      pregunta1: {
+        texto: "¿Debes más de 10.000€?",
+        respuesta: answers.p1 ? 'SÍ' : 'NO'
+      },
+      pregunta2: {
+        texto: "¿Tienes capacidad para pagar tu deuda y vivir dignamente?",
+        respuesta: answers.p2 ? 'SÍ' : 'NO'
+      },
+      pregunta3: {
+        texto: "¿Has intentado llegar a un acuerdo con acreedores?",
+        respuesta: answers.p3 ? 'SÍ' : 'NO'
+      }
+    },
+    timestamp: new Date().toISOString(),
+    origen: 'Landing Ley Segunda Oportunidad'
+  };
+  
+  try {
+    const response = await fetch(webhookURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if (response.ok) {
+      console.log('Datos enviados al webhook exitosamente:', payload);
+    } else {
+      console.error('Error al enviar al webhook:', response.status);
+    }
+  } catch (error) {
+    console.error('Error al conectar con el webhook:', error);
+  }
 }
 
 function checkQualification() {
