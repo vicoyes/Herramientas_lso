@@ -168,11 +168,16 @@ function showLoading() {
 
 async function showResults() {
   const resultType = checkQualification();
+  console.log('🔍 Resultado obtenido:', resultType);
+  console.log('📊 Respuestas del quiz:', answers);
   
   // Para LSO, NO enviamos el webhook aún (esperamos el formulario)
   // Para otros resultados, enviamos inmediatamente
   if (resultType !== 'LEY_SEGUNDA_OPORTUNIDAD') {
+    console.log('📤 Enviando webhook para resultado:', resultType);
     await sendWebhook(resultType);
+  } else {
+    console.log('⏸️ LSO detectado - webhook se enviará después del formulario');
   }
   
   loadingSection.classList.add('hidden');
@@ -182,7 +187,9 @@ async function showResults() {
 
 // Función para enviar datos al webhook
 async function sendWebhook(resultType) {
+  console.log('🚀 sendWebhook() iniciado con tipo:', resultType);
   const webhookURL = 'https://n8n.empiezadecero.cat/webhook/d8eddf79-25bf-4ebe-818e-88a667dcaac8';
+  console.log('🔗 URL del webhook:', webhookURL);
   
   // Determinar el tag según el resultado
   let tag = '';
@@ -222,7 +229,10 @@ async function sendWebhook(resultType) {
     origen: 'Landing Ley Segunda Oportunidad'
   };
   
+  console.log('📦 Payload a enviar:', payload);
+  
   try {
+    console.log('⏳ Enviando fetch al webhook...');
     const response = await fetch(webhookURL, {
       method: 'POST',
       headers: {
@@ -232,12 +242,16 @@ async function sendWebhook(resultType) {
     });
     
     if (response.ok) {
-      console.log('Datos enviados al webhook exitosamente:', payload);
+      console.log('✅ Datos enviados al webhook exitosamente:', payload);
+      console.log('📥 Respuesta del servidor:', response.status, response.statusText);
     } else {
-      console.error('Error al enviar al webhook:', response.status);
+      console.error('❌ Error al enviar al webhook:', response.status, response.statusText);
+      const responseText = await response.text();
+      console.error('📄 Respuesta del servidor:', responseText);
     }
   } catch (error) {
-    console.error('Error al conectar con el webhook:', error);
+    console.error('🔴 Error al conectar con el webhook:', error);
+    console.error('🔴 Detalles del error:', error.message, error.stack);
   }
 }
 
